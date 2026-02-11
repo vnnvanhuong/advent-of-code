@@ -3,6 +3,7 @@ package aoc2025
 import (
 	"bufio"
 	"log"
+	"math"
 	"os"
 	"strconv"
 )
@@ -36,10 +37,41 @@ func SecretEntrance1(rotations []string) int {
 }
 
 // SecretEntrance2 counts every click that causes the dial to point at 0,
-// including mid-rotation crossings. Uses floor division to count how many
-// multiples of 100 are crossed during each rotation on the unwrapped number line.
+// including mid-rotation crossings.
+// Credits: https://z-nerd.com/posts/2025/12/aoc-2025-day-one/
 func SecretEntrance2(rotations []string) int {
+	dialPosition := 50
 	count := 0
+	startAtZero := false
+
+	for _, rotation := range rotations {
+		direction := rotation[0]
+		distance, _ := strconv.Atoi(rotation[1:])
+		if direction == 'L' {
+			distance = -distance
+		}
+
+		// move the dial
+		dialPosition += distance
+
+		// count the number of times the dial crosses over 0
+		count += int(math.Floor(math.Abs(float64(dialPosition)) / 100))
+
+		// if dial position lands on 0, count++
+		if dialPosition == 0 {
+			count++
+		}
+
+		// edge case: add 1 when cross over 0 the negative direction
+		if dialPosition < 0 && !startAtZero {
+			count++
+		}
+
+		// reset the dial position within bound of 0-99
+		dialPosition = (dialPosition%100 + 100) % 100
+		startAtZero = dialPosition == 0
+	}
+
 	return count
 }
 
