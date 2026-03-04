@@ -15,4 +15,5 @@ func main() {
 
 	ranges := aoc2025.GiftShopInput("aoc2025/gift_shop.txt")
 	fmt.Println("Gift Shop 1:", aoc2025.GiftShop1(ranges))
+	fmt.Println("Gift Shop 2", aoc2025.GiftShop2(ranges))
 }
