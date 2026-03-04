@@ -14,13 +14,14 @@ type GiftRange struct {
 }
 
 // GiftShop1 calculates the total invalid IDs from a list of gift ranges
-// invalid IDs are the IDs if they are made only of some sequence of digits
-// repeated at least twice
+// GiftShop1 calculates the total invalid IDs from a list of gift ranges
+// using the Part One rule: an ID is invalid if it consists of some sequence
+// of digits repeated **exactly twice** (e.g. 55, 6464, 123123).
 func GiftShop1(ranges []GiftRange) int {
 	totalInvalid := 0
 	for _, r := range ranges {
 		for id := r.Start; id <= r.End; id++ {
-			if isInvalid(id) {
+			if isInvalidPart1(id) {
 				totalInvalid += id
 			}
 		}
@@ -28,9 +29,35 @@ func GiftShop1(ranges []GiftRange) int {
 	return totalInvalid
 }
 
-// Try all possible substring lengths l (from 1 to n/2)
-// and checks if repeating s[:l] exactly n/l times reconstructs the full string.
-func isInvalid(id int) bool {
+// GiftShop2 implements the Part Two rule: invalid IDs are made of some sequence
+// of digits repeated at least twice (so any number of repetitions ≥2 counts).
+func GiftShop2(ranges []GiftRange) int {
+	totalInvalid := 0
+	for _, r := range ranges {
+		for id := r.Start; id <= r.End; id++ {
+			if isInvalidPart2(id) {
+				totalInvalid += id
+			}
+		}
+	}
+	return totalInvalid
+}
+
+// isInvalidPart1 checks for exactly two repetitions
+func isInvalidPart1(id int) bool {
+	s := strconv.Itoa(id)
+	n := len(s)
+	// only lengths that are exactly twice a substring
+	for l := 1; l <= n/2; l++ {
+		if n == 2*l && strings.Repeat(s[:l], 2) == s {
+			return true
+		}
+	}
+	return false
+}
+
+// isInvalidPart2 checks for any number of repetitions >= 2.
+func isInvalidPart2(id int) bool {
 	s := strconv.Itoa(id)
 	n := len(s)
 	for l := 1; l <= n/2; l++ {
