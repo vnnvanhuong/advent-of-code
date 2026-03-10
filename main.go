@@ -16,4 +16,9 @@ func main() {
 	ranges := aoc2025.GiftShopInput("aoc2025/gift_shop.txt")
 	fmt.Println("Gift Shop 1:", aoc2025.GiftShop1(ranges))
 	fmt.Println("Gift Shop 2", aoc2025.GiftShop2(ranges))
+
+	// read lobby input and compute
+	banks := aoc2025.LobbyInput("aoc2025/lobby.txt")
+	fmt.Println("Lobby 1:", aoc2025.Lobby1(banks))
+	fmt.Println("Lobby 2:", aoc2025.Lobby2(banks))
 }
