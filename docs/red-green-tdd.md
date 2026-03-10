@@ -8,6 +8,4 @@ It's important to confirm that the tests fail before implementing the code to ma
 
 That's what "red/green" means: the red phase watches the tests fail, then the green phase confirms that they now pass.
 
-Reference:
-
-https://simonwillison.net/guides/agentic-engineering-patterns/red-green-tdd/
+**Reference:** https://simonwillison.net/guides/agentic-engineering-patterns/red-green-tdd/
