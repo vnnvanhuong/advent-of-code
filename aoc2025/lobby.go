@@ -12,7 +12,7 @@ import (
 // formed by their labels in order. The function returns the sum of each bank's
 // maximum possible joltage.
 func Lobby1(banks []string) int {
-	// brute-force two-pointer search per bank, as suggested by the user.
+	// brute-force two-pointer search per bank
 	// for each line of digits we scan all ordered pairs and keep the largest
 	// two-digit value encountered.
 	total := 0
@@ -27,6 +27,45 @@ func Lobby1(banks []string) int {
 				if val > maxVal {
 					maxVal = val
 				}
+			}
+		}
+		total += maxVal
+	}
+	return total
+}
+
+// PrefixSum_Lobby1 is an O(n) alternative to Lobby1. It precalculates,
+// for each index i, the largest digit appearing *after* i, then uses that to
+// compute the best two‑digit value for each possible first battery.  By
+// restricting the search to i < len(bank)-1 we avoid invalid pairs (there is
+// no second battery after the last position).
+func PrefixSum_Lobby1(banks []string) int {
+	total := 0
+	for _, bank := range banks {
+		n := len(bank)
+		if n < 2 {
+			// no valid pair
+			continue
+		}
+
+		// slice of maximum digit to the right of each index
+		maxAfter := make([]int, n)
+		mva := 0
+		// scan backward; maxAfter[i] should be max digit in bank[i+1:]
+		for i := n - 1; i >= 0; i-- {
+			maxAfter[i] = mva
+			d := int(bank[i] - '0')
+			if d > mva {
+				mva = d
+			}
+		}
+
+		maxVal := 0
+		for i := 0; i < n-1; i++ {
+			d := int(bank[i] - '0')
+			val := d*10 + maxAfter[i]
+			if val > maxVal {
+				maxVal = val
 			}
 		}
 		total += maxVal
