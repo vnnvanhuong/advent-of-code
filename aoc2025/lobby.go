@@ -73,11 +73,45 @@ func PrefixSum_Lobby1(banks []string) int {
 	return total
 }
 
-// Lobby2 is reserved for part two of the puzzle. Behavior is currently undefined
-// and will be implemented after tests are written.
-func Lobby2(banks []string) int {
-	// implementation TBD
-	return 0
+// Lobby2 choose exactly twelve batteries per bank to
+// maximize the resulting 12-digit joltage number.  If a bank has fewer than
+// twelve batteries it contributes 0.
+//
+// The algorithm is a simple greedy window scan: for each of the twelve
+// positions we pick the largest available digit that still leaves enough
+// characters to finish the sequence.
+func Lobby2(banks []string) int64 {
+	total := int64(0)
+	const k = 12
+	for _, bank := range banks {
+		n := len(bank)
+		if n < k {
+			continue
+		}
+		pos := 0
+		var val int64
+		for picks := k; picks > 0; picks-- {
+			// we must pick one digit from bank[pos : n-picks+1]
+			end := n - picks + 1
+			best := -1
+			bestIdx := pos
+			for i := pos; i < end; i++ {
+				d := int(bank[i] - '0')
+				if d > best {
+					best = d
+					bestIdx = i
+					// early exit: cannot do better than 9
+					if best == 9 {
+						break
+					}
+				}
+			}
+			val = val*10 + int64(best)
+			pos = bestIdx + 1
+		}
+		total += val
+	}
+	return total
 }
 
 // LobbyInput reads the battery banks from a file; each line corresponds to one

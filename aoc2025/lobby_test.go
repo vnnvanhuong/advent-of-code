@@ -49,9 +49,36 @@ func TestLobby1(t *testing.T) {
 }
 
 func TestLobby2(t *testing.T) {
-	t.Run("placeholder", func(t *testing.T) {
-		// behavior for part two not yet specified
-		banks := []string{"123"}
-		_ = aoc2025.Lobby2(banks)
+	t.Run("example banks", func(t *testing.T) {
+		banks := []string{
+			"987654321111111",
+			"811111111111119",
+			"234234234234278",
+			"818181911112111",
+		}
+		// expected results from problem description
+		// 987654321111 + 811111111119 + 434234234278 + 888911112111
+		expected := int64(3121910778619)
+		actual := aoc2025.Lobby2(banks)
+		if actual != expected {
+			t.Errorf("expected %d, got %d", expected, actual)
+		}
+	})
+
+	t.Run("short banks",
+		func(t *testing.T) {
+			banks := []string{"12345678901", "123"} // both shorter than 12
+			if aoc2025.Lobby2(banks) != 0 {
+				t.Errorf("expected 0 for undersized banks")
+			}
+		})
+
+	t.Run("exactly twelve", func(t *testing.T) {
+		banks := []string{"987654321012"} // should return itself
+		expected := int64(987654321012)
+		actual := aoc2025.Lobby2(banks)
+		if actual != expected {
+			t.Errorf("expected %d got %d", expected, actual)
+		}
 	})
 }
