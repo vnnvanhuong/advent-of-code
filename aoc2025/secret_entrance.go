@@ -1,10 +1,7 @@
 package aoc2025
 
 import (
-	"bufio"
-	"log"
 	"math"
-	"os"
 	"strconv"
 )
 
@@ -73,25 +70,4 @@ func SecretEntrance2(rotations []string) int {
 	}
 
 	return count
-}
-
-func SecretEntranceInput(filename string) []string {
-	// read lines from file and append to a slice
-	lines := []string{}
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Fatalf("failed to open file: %v", err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatalf("failed to read file: %v", err)
-	}
-
-	return lines
 }

@@ -1,9 +1,6 @@
 package aoc2025
 
 import (
-	"io"
-	"log"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -81,25 +78,22 @@ func parseInt(s string) int {
 	return n
 }
 
-// GiftShopInput reads and parses the input file
-// file contains only one line with a list of gift ranges separated by commas
+// GiftShopInput reads and parses the input file. The file is expected to
+// contain a single line with comma-separated ranges. We still need a little
+// custom parsing logic, but reading the file is delegated to ReadLines so that
+// this routine is now just a thin wrapper.
 func GiftShopInput(filename string) []GiftRange {
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Fatalf("failed to open file: %v", err)
-	}
-	defer file.Close()
-
-	fileContent, err := io.ReadAll(file)
-	if err != nil {
-		log.Fatalf("failed to read file: %v", err)
-	}
-
-	lines := strings.Split(string(fileContent), ",")
-	ranges := []GiftRange{}
-	for _, line := range lines {
+	lines := ReadLines(filename)
+	// the puzzle guarantees only one line of input containing comma-separated
+	// ranges, but be defensive: join any extra lines anyway.
+	all := strings.Join(lines, ",")
+	rawRanges := strings.Split(all, ",")
+	ranges := make([]GiftRange, 0, len(rawRanges))
+	for _, line := range rawRanges {
+		if line == "" {
+			continue
+		}
 		ranges = append(ranges, parseGiftRange(line))
 	}
-
 	return ranges
 }

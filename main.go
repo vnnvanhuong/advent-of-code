@@ -9,7 +9,7 @@ import (
 func main() {
 	fmt.Println("Hello, Advent of Code 2025!")
 
-	rotations := aoc2025.SecretEntranceInput("aoc2025/secret_entrance.txt")
+	rotations := aoc2025.ReadLines("aoc2025/secret_entrance.txt")
 	fmt.Println("Secret Entrance 1:", aoc2025.SecretEntrance1(rotations))
 	fmt.Println("Secret Entrance 2:", aoc2025.SecretEntrance2(rotations))
 
@@ -17,8 +17,7 @@ func main() {
 	fmt.Println("Gift Shop 1:", aoc2025.GiftShop1(ranges))
 	fmt.Println("Gift Shop 2", aoc2025.GiftShop2(ranges))
 
-	// read lobby input and compute
-	banks := aoc2025.LobbyInput("aoc2025/lobby.txt")
+	banks := aoc2025.ReadLines("aoc2025/lobby.txt")
 	fmt.Println("Lobby 1:", aoc2025.Lobby1(banks))
 	fmt.Println("Lobby 2:", aoc2025.Lobby2(banks))
 }

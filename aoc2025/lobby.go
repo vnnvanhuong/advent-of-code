@@ -1,10 +1,6 @@
 package aoc2025
 
-import (
-	"bufio"
-	"log"
-	"os"
-)
+// no imports required; all file I/O has been moved to input.go
 
 // Lobby1 computes the total output joltage for part one of the lobby puzzle.
 // Each string in banks represents a line of digit-labeled batteries. Exactly two
@@ -112,24 +108,4 @@ func Lobby2(banks []string) int64 {
 		total += val
 	}
 	return total
-}
-
-// LobbyInput reads the battery banks from a file; each line corresponds to one
-// bank (a contiguous string of digit characters). It returns the slice of lines.
-func LobbyInput(filename string) []string {
-	lines := []string{}
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Fatalf("failed to open file: %v", err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	if err := scanner.Err(); err != nil {
-		log.Fatalf("failed to read file: %v", err)
-	}
-	return lines
 }
