@@ -52,3 +52,60 @@ func PrintingDepartment(grid []string) int {
 
 	return count
 }
+
+func PrintingDepartment2(grid []string) int {
+	rows := len(grid)
+	if rows == 0 {
+		return 0
+	}
+	cols := len(grid[0])
+
+	g := make([][]byte, rows)
+	for i, s := range grid {
+		g[i] = []byte(s)
+	}
+
+	dirs := [8][2]int{
+		{-1, -1}, {-1, 0}, {-1, 1},
+		{0, -1}, {0, 1},
+		{1, -1}, {1, 0}, {1, 1},
+	}
+
+	count := 0
+
+	for {
+		removal := [][2]int{}
+		for r := range rows {
+			for c := range cols {
+				if g[r][c] != '@' {
+					continue
+				}
+
+				adj := 0
+				for _, d := range dirs {
+					ar, ac := r+d[0], c+d[1]
+					if ar >= 0 && ar < rows && ac >= 0 && ac < cols && g[ar][ac] == '@' {
+						adj++
+					}
+				}
+
+				if adj < 4 {
+					removal = append(removal, [2]int{r, c})
+				}
+			}
+		}
+
+		if len(removal) == 0 {
+			break
+		}
+
+		for _, pos := range removal {
+			r, c := pos[0], pos[1]
+			g[r][c] = '.'
+		}
+
+		count += len(removal)
+	}
+
+	return count
+}

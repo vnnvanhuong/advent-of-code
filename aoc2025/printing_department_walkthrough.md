@@ -79,3 +79,79 @@ The solution is already optimal at O(R*C). Possible micro-optimizations: early-e
 
 This is a classic **grid neighbour-counting** problem -- the same pattern appears in Conway's Game of Life, minesweeper number generation, and cellular automata. The key insight is that checking a fixed-size neighbourhood around each cell keeps the per-cell work constant, giving a clean linear scan over the grid. Boundary handling by bounds-checking is simpler than padding the grid with sentinel values for small kernels like this.
 
+## Part 2
+
+### Problem Summary: 
+
+Part 2 extends the single-pass count into an iterative removal process. Each round, identify every roll that is currently accessible (fewer than 4 neighbours), remove all of them at once, then repeat on the updated grid. Keep going until no more rolls are accessible. The answer is the **total number of rolls removed across all rounds**. In the example, the rounds remove 13, 12, 7, 5, 2, 1, 1, 1, 1 rolls for a total of **43**.
+
+### Red Phase: add Part 2 tests with a stub that returns 0.
+
+```bash
+cd aoc2025 && go test -run TestPrintingDepartment2 -v
+```
+
+```output
+=== RUN   TestPrintingDepartment2
+=== RUN   TestPrintingDepartment2/empty_grid_returns_zero
+=== RUN   TestPrintingDepartment2/single_roll_removed_in_one_round
+    printing_department_test.go:66: expected 1, got 0
+=== RUN   TestPrintingDepartment2/sparse_row_all_removed_at_once
+    printing_department_test.go:74: expected 3, got 0
+=== RUN   TestPrintingDepartment2/3x3_block_fully_eroded_in_two_rounds
+    printing_department_test.go:88: expected 9, got 0
+=== RUN   TestPrintingDepartment2/sample_from_puzzle_description
+    printing_department_test.go:107: expected 43, got 0
+--- FAIL: TestPrintingDepartment2 (0.00s)
+    --- PASS: TestPrintingDepartment2/empty_grid_returns_zero (0.00s)
+    --- FAIL: TestPrintingDepartment2/single_roll_removed_in_one_round (0.00s)
+    --- FAIL: TestPrintingDepartment2/sparse_row_all_removed_at_once (0.00s)
+    --- FAIL: TestPrintingDepartment2/3x3_block_fully_eroded_in_two_rounds (0.00s)
+    --- FAIL: TestPrintingDepartment2/sample_from_puzzle_description (0.00s)
+FAIL
+exit status 1
+FAIL	nguyenvanhuong.vn/adventofcode/aoc2025	0.009s
+```
+
+### Proposed Approaches (simple to complex)
+
+**Approach 1 -- Round-by-round full scan.** Each round, scan every cell, collect all accessible rolls, remove them simultaneously, repeat until nothing is removable. Time: O(K * R * C) where K is number of rounds. Pros: dead simple, mirrors the problem statement, easy to debug. Cons: re-scans the entire grid each round including empty and interior cells.
+
+**Approach 2 -- Round-by-round with candidate tracking.** Maintain a candidate set of cells that might become accessible. After removing a batch, only neighbours of removed cells become candidates for the next round. Time: O(T * 8) where T is total rolls removed. Pros: avoids scanning empty/interior cells, still gives round-by-round structure. Cons: more bookkeeping, cells can appear in the candidate set multiple times.
+
+**Approach 3 -- Single-pass BFS peeling.** Precompute neighbour counts, seed a queue with all initially accessible rolls. Dequeue a cell, remove it, decrement its neighbours' counts, enqueue any whose count drops below 4. Each cell processed at most once. Time: O(R * C). Pros: optimal, elegant, same pattern as topological sort / Kahn's algorithm. Cons: requires an auxiliary count array, does not naturally separate rounds.
+
+**Recommendation:** Approach 3 gives optimal O(R*C) time with the same O(R*C) space as the others. The code is only slightly more complex than Approach 1 and follows a well-known graph peeling pattern.
+
+### Green Phase: Approach 1 implemented and all tests pass. Print both parts from main.
+
+```bash
+cd aoc2025 && go test -run TestPrintingDepartment -v
+```
+
+```output
+=== RUN   TestPrintingDepartment1
+=== RUN   TestPrintingDepartment1/empty_grid_returns_zero
+=== RUN   TestPrintingDepartment1/one_roll_is_accessible
+=== RUN   TestPrintingDepartment1/dense_3x3_block_has_only_corners_accessible
+=== RUN   TestPrintingDepartment1/sample_from_puzzle_description
+--- PASS: TestPrintingDepartment1 (0.00s)
+    --- PASS: TestPrintingDepartment1/empty_grid_returns_zero (0.00s)
+    --- PASS: TestPrintingDepartment1/one_roll_is_accessible (0.00s)
+    --- PASS: TestPrintingDepartment1/dense_3x3_block_has_only_corners_accessible (0.00s)
+    --- PASS: TestPrintingDepartment1/sample_from_puzzle_description (0.00s)
+=== RUN   TestPrintingDepartment2
+=== RUN   TestPrintingDepartment2/empty_grid_returns_zero
+=== RUN   TestPrintingDepartment2/single_roll_removed_in_one_round
+=== RUN   TestPrintingDepartment2/sparse_row_all_removed_at_once
+=== RUN   TestPrintingDepartment2/3x3_block_fully_eroded_in_two_rounds
+=== RUN   TestPrintingDepartment2/sample_from_puzzle_description
+--- PASS: TestPrintingDepartment2 (0.00s)
+    --- PASS: TestPrintingDepartment2/empty_grid_returns_zero (0.00s)
+    --- PASS: TestPrintingDepartment2/single_roll_removed_in_one_round (0.00s)
+    --- PASS: TestPrintingDepartment2/sparse_row_all_removed_at_once (0.00s)
+    --- PASS: TestPrintingDepartment2/3x3_block_fully_eroded_in_two_rounds (0.00s)
+    --- PASS: TestPrintingDepartment2/sample_from_puzzle_description (0.00s)
+PASS
+ok  	nguyenvanhuong.vn/adventofcode/aoc2025	0.006s
+```

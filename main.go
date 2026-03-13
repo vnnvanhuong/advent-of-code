@@ -22,5 +22,6 @@ func main() {
 	fmt.Println("Lobby 2:", aoc2025.Lobby2(banks))
 
 	grid := aoc2025.ReadLines("aoc2025/printing_department.txt")
-	fmt.Println("Printing Department:", aoc2025.PrintingDepartment(grid))
+	fmt.Println("Printing Department 1:", aoc2025.PrintingDepartment(grid))
+	fmt.Println("Printing Department 2:", aoc2025.PrintingDepartment2(grid))
 }
