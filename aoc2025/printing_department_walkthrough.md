@@ -123,7 +123,7 @@ FAIL	nguyenvanhuong.vn/adventofcode/aoc2025	0.009s
 
 **Recommendation:** Approach 3 gives optimal O(R*C) time with the same O(R*C) space as the others. The code is only slightly more complex than Approach 1 and follows a well-known graph peeling pattern.
 
-### Green Phase: Approach 1 implemented and all tests pass. Print both parts from main.
+### Green Phase: Approach 1 implemented and all tests pass.
 
 ```bash
 cd aoc2025 && go test -run TestPrintingDepartment -v
@@ -152,6 +152,75 @@ cd aoc2025 && go test -run TestPrintingDepartment -v
     --- PASS: TestPrintingDepartment2/sparse_row_all_removed_at_once (0.00s)
     --- PASS: TestPrintingDepartment2/3x3_block_fully_eroded_in_two_rounds (0.00s)
     --- PASS: TestPrintingDepartment2/sample_from_puzzle_description (0.00s)
+PASS
+ok  	nguyenvanhuong.vn/adventofcode/aoc2025	0.006s
+```
+
+### Refactor: 
+Renamed `PrintingDepartment2` to `BruteforcePrintingDepartment2` and implemented Approach 3 (BFS peeling) as the new PrintingDepartment2. Precompute neighbour counts, seed queue with all initially accessible rolls, then process: dequeue, remove, decrement neighbours, enqueue any that drop below threshold. Each cell processed at most once.
+
+```bash
+cd aoc2025 && go test -run TestPrintingDepartment -v
+```
+
+```output
+=== RUN   TestPrintingDepartment1
+=== RUN   TestPrintingDepartment1/empty_grid_returns_zero
+=== RUN   TestPrintingDepartment1/one_roll_is_accessible
+=== RUN   TestPrintingDepartment1/dense_3x3_block_has_only_corners_accessible
+=== RUN   TestPrintingDepartment1/sample_from_puzzle_description
+--- PASS: TestPrintingDepartment1 (0.00s)
+    --- PASS: TestPrintingDepartment1/empty_grid_returns_zero (0.00s)
+    --- PASS: TestPrintingDepartment1/one_roll_is_accessible (0.00s)
+    --- PASS: TestPrintingDepartment1/dense_3x3_block_has_only_corners_accessible (0.00s)
+    --- PASS: TestPrintingDepartment1/sample_from_puzzle_description (0.00s)
+=== RUN   TestPrintingDepartment2
+=== RUN   TestPrintingDepartment2/empty_grid_returns_zero
+=== RUN   TestPrintingDepartment2/single_roll_removed_in_one_round
+=== RUN   TestPrintingDepartment2/sparse_row_all_removed_at_once
+=== RUN   TestPrintingDepartment2/3x3_block_fully_eroded_in_two_rounds
+=== RUN   TestPrintingDepartment2/sample_from_puzzle_description
+--- PASS: TestPrintingDepartment2 (0.00s)
+    --- PASS: TestPrintingDepartment2/empty_grid_returns_zero (0.00s)
+    --- PASS: TestPrintingDepartment2/single_roll_removed_in_one_round (0.00s)
+    --- PASS: TestPrintingDepartment2/sparse_row_all_removed_at_once (0.00s)
+    --- PASS: TestPrintingDepartment2/3x3_block_fully_eroded_in_two_rounds (0.00s)
+    --- PASS: TestPrintingDepartment2/sample_from_puzzle_description (0.00s)
+PASS
+ok  	nguyenvanhuong.vn/adventofcode/aoc2025	0.004s
+```
+
+### Part 2 Complexity
+
+**Brute-force (Approach 1):** Time O(K * R * C) where K is the number of erosion rounds. Space O(R * C) for the mutable byte grid. 
+
+**BFS peeling (Approach 3):** Time O(R * C) -- each cell enqueued and processed at most once. Space O(R * C) for the adjacency count array and queue. Both produce identical results; the BFS approach eliminates redundant full-grid scans.
+
+## Takeaway
+
+Part 1 is a straightforward **grid neighbour-counting** problem (same family as minesweeper, Game of Life). Part 2 turns it into **iterative erosion / graph peeling** -- repeatedly removing nodes whose degree falls below a threshold. The optimal approach is a BFS queue seeded with initially removable cells, processing each cell exactly once as its neighbours' counts are decremented. This is the same algorithmic pattern as **Kahn's algorithm** for topological sort and **k-core decomposition** in graph theory, where nodes with degree below k are peeled away layer by layer. Key lessons: (1) when a brute-force simulation re-scans unchanged regions, a queue-based approach can eliminate redundant work; (2) precomputing derived state (neighbour counts) and maintaining it incrementally is cheaper than recomputing from scratch each round.
+
+### Approach 2 Implemented: CandidatePrintingDepartment2. First round does a full scan to find initial candidates. Each subsequent round only checks neighbours of cells removed in the previous round. Added a cross-approach test confirming all three implementations agree on every test case.
+
+```bash
+cd aoc2025 && go test -run TestPrintingDepartment2 -v
+```
+
+```output
+=== RUN   TestPrintingDepartment2
+=== RUN   TestPrintingDepartment2/empty_grid_returns_zero
+=== RUN   TestPrintingDepartment2/single_roll_removed_in_one_round
+=== RUN   TestPrintingDepartment2/sparse_row_all_removed_at_once
+=== RUN   TestPrintingDepartment2/3x3_block_fully_eroded_in_two_rounds
+=== RUN   TestPrintingDepartment2/sample_from_puzzle_description
+=== RUN   TestPrintingDepartment2/all_three_approaches_agree
+--- PASS: TestPrintingDepartment2 (0.00s)
+    --- PASS: TestPrintingDepartment2/empty_grid_returns_zero (0.00s)
+    --- PASS: TestPrintingDepartment2/single_roll_removed_in_one_round (0.00s)
+    --- PASS: TestPrintingDepartment2/sparse_row_all_removed_at_once (0.00s)
+    --- PASS: TestPrintingDepartment2/3x3_block_fully_eroded_in_two_rounds (0.00s)
+    --- PASS: TestPrintingDepartment2/sample_from_puzzle_description (0.00s)
+    --- PASS: TestPrintingDepartment2/all_three_approaches_agree (0.00s)
 PASS
 ok  	nguyenvanhuong.vn/adventofcode/aoc2025	0.006s
 ```
