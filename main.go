@@ -24,4 +24,7 @@ func main() {
 	grid := aoc2025.ReadLines("aoc2025/printing_department.txt")
 	fmt.Println("Printing Department 1:", aoc2025.PrintingDepartment(grid))
 	fmt.Println("Printing Department 2:", aoc2025.PrintingDepartment2(grid))
+
+	cafRanges, cafIDs := aoc2025.CafeteriaInput("aoc2025/cafeteria.txt")
+	fmt.Println("Cafeteria 1:", aoc2025.Cafeteria(cafRanges, cafIDs))
 }
