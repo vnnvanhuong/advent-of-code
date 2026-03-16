@@ -59,3 +59,52 @@ func TestCafeteria(t *testing.T) {
 		}
 	})
 }
+
+func TestCafeteria2(t *testing.T) {
+	t.Run("sample from puzzle description", func(t *testing.T) {
+		ranges := [][2]int{{3, 5}, {10, 14}, {16, 20}, {12, 18}}
+		want := 14
+		if got := aoc2025.Cafeteria2(ranges); got != want {
+			t.Errorf("expected %d, got %d", want, got)
+		}
+	})
+
+	t.Run("non-overlapping ranges", func(t *testing.T) {
+		ranges := [][2]int{{1, 3}, {10, 12}}
+		want := 6
+		if got := aoc2025.Cafeteria2(ranges); got != want {
+			t.Errorf("expected %d, got %d", want, got)
+		}
+	})
+
+	t.Run("fully overlapping ranges", func(t *testing.T) {
+		ranges := [][2]int{{1, 10}, {3, 7}}
+		want := 10
+		if got := aoc2025.Cafeteria2(ranges); got != want {
+			t.Errorf("expected %d, got %d", want, got)
+		}
+	})
+
+	t.Run("adjacent ranges merge", func(t *testing.T) {
+		ranges := [][2]int{{1, 5}, {6, 10}}
+		want := 10
+		if got := aoc2025.Cafeteria2(ranges); got != want {
+			t.Errorf("expected %d, got %d", want, got)
+		}
+	})
+
+	t.Run("single-element range", func(t *testing.T) {
+		ranges := [][2]int{{7, 7}}
+		want := 1
+		if got := aoc2025.Cafeteria2(ranges); got != want {
+			t.Errorf("expected %d, got %d", want, got)
+		}
+	})
+
+	t.Run("empty ranges returns zero", func(t *testing.T) {
+		want := 0
+		if got := aoc2025.Cafeteria2(nil); got != want {
+			t.Errorf("expected %d, got %d", want, got)
+		}
+	})
+}

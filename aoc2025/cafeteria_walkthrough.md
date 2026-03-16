@@ -103,3 +103,48 @@ Added CafeteriaInput() parser to cafeteria.go and wired it into main.go.
 
 Run the program to get the answer:
 go run main.go
+
+## Part Two - Problem Summary
+
+Ignore the available IDs list. Count the total number of unique ingredient IDs that all the fresh ranges cover.
+
+Since ranges overlap, we must merge them first to avoid double-counting.
+
+**Example:**
+- Ranges: 3-5, 10-14, 16-20, 12-18
+- After merging: [3-5], [10-20]
+- Count: (5-3+1) + (20-10+1) = 3 + 11 = 14
+
+This reuses the merge-intervals step from Part 1. Instead of binary searching IDs, we sum the size of each merged interval: end - start + 1.
+
+## Part Two - TDD Red Phase
+
+Wrote 6 test cases for Cafeteria2() in cafeteria_test.go:
+1. Sample from puzzle description - ranges [3-5, 10-14, 16-20, 12-18] cover 14 unique IDs
+2. Non-overlapping ranges - [1-3, 10-12] cover 3+3 = 6 IDs
+3. Fully overlapping ranges - [1-10, 3-7] cover 10 IDs (inner range adds nothing)
+4. Adjacent ranges merge - [1-5, 6-10] merge to [1-10] = 10 IDs
+5. Single-element range - [7-7] covers 1 ID
+6. Empty ranges returns 0
+
+All tests fail because Cafeteria2() is not yet defined.
+
+## Part Two - TDD Green Phase
+
+Refactored cafeteria.go to extract a shared mergeRanges() helper used by both parts:
+- Cafeteria() (Part 1): mergeRanges + binary search each ID
+- Cafeteria2() (Part 2): mergeRanges + sum interval sizes (end - start + 1)
+
+### Test results
+All 12 tests pass (6 for Part 1, 6 for Part 2).
+
+### Complexity
+- Time: O(R log R) dominated by sorting
+- Space: O(R) for the merged interval list
+
+Run the program to get the answer:
+go run main.go
+
+## Takeaway
+
+This problem is a classic **interval merging** pattern. The key lesson: once you have sorted, non-overlapping intervals, many questions become trivial -- membership checks via binary search (Part 1) and total coverage via summation (Part 2). Recognizing this pattern early lets you solve both parts with a single shared O(R log R) preprocessing step.

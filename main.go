@@ -27,4 +27,5 @@ func main() {
 
 	cafRanges, cafIDs := aoc2025.CafeteriaInput("aoc2025/cafeteria.txt")
 	fmt.Println("Cafeteria 1:", aoc2025.Cafeteria(cafRanges, cafIDs))
+	fmt.Println("Cafeteria 2:", aoc2025.Cafeteria2(cafRanges))
 }

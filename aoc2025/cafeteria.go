@@ -44,10 +44,11 @@ func CafeteriaInput(filename string) ([][2]int, []int) {
 	return ranges, ids
 }
 
-// Cafeteria counts how many of the available ingredient IDs are "fresh",
-// meaning they fall within at least one of the given inclusive ranges.
+// mergeRanges sorts and merges overlapping/adjacent inclusive ranges into
+// a minimal set of non-overlapping intervals. This is the shared core for
+// both Part 1 and Part 2.
 //
-// Algorithm — Merge Intervals + Binary Search (Approach 2)
+// Algorithm:
 //
 // Step 1: Sort the ranges by their start value.
 //
@@ -69,27 +70,19 @@ func CafeteriaInput(filename string) ([][2]int, []int) {
 //	 → [3-5, 10-18]                   12 <= 14+1, extend end to max(14,18)=18
 //	 → [3-5, 10-20]                   16 <= 18+1, extend end to max(18,20)=20
 //
-// Step 3: For each ID, binary search the merged intervals.
-//
-//	Because the intervals are sorted and non-overlapping, we can binary
-//	search for the rightmost interval whose start <= id, then check
-//	whether id <= that interval's end.
-//
-// Time:  O(R log R + N log R)  where R = ranges, N = IDs
-// Space: O(R) for the merged intervals
-func Cafeteria(ranges [][2]int, ids []int) int {
-	if len(ranges) == 0 || len(ids) == 0 {
-		return 0
+// Time:  O(R log R)
+// Space: O(R)
+func mergeRanges(ranges [][2]int) [][2]int {
+	if len(ranges) == 0 {
+		return nil
 	}
 
-	// --- Step 1: Sort ranges by start value ---
 	sorted := make([][2]int, len(ranges))
 	copy(sorted, ranges)
 	sort.Slice(sorted, func(i, j int) bool {
 		return sorted[i][0] < sorted[j][0]
 	})
 
-	// --- Step 2: Merge overlapping intervals ---
 	// merged holds non-overlapping intervals in ascending order.
 	//
 	// Invariant: for all i < len(merged)-1,
@@ -113,7 +106,25 @@ func Cafeteria(ranges [][2]int, ids []int) int {
 		}
 	}
 
-	// --- Step 3: Binary search each ID against merged intervals ---
+	return merged
+}
+
+// Cafeteria counts how many of the available ingredient IDs are "fresh",
+// meaning they fall within at least one of the given inclusive ranges.
+//
+// Uses mergeRanges to build non-overlapping intervals, then binary searches
+// each ID against them.
+//
+// Time:  O(R log R + N log R)  where R = ranges, N = IDs
+// Space: O(R) for the merged intervals
+func Cafeteria(ranges [][2]int, ids []int) int {
+	if len(ranges) == 0 || len(ids) == 0 {
+		return 0
+	}
+
+	merged := mergeRanges(ranges)
+
+	// Binary search each ID against merged intervals.
 	//
 	// For a given id, we want the rightmost interval whose start <= id.
 	// If that interval's end >= id, the id is fresh.
@@ -136,4 +147,26 @@ func Cafeteria(ranges [][2]int, ids []int) int {
 	}
 
 	return count
+}
+
+// Cafeteria2 counts the total number of unique ingredient IDs that all
+// fresh ranges cover. The available IDs list is irrelevant for Part 2.
+//
+// Uses mergeRanges to collapse overlapping ranges, then sums the size of
+// each non-overlapping interval: end - start + 1.
+//
+// Example with merged = [3-5, 10-20]:
+//
+//	(5-3+1) + (20-10+1) = 3 + 11 = 14
+//
+// Time:  O(R log R)   — dominated by the sort inside mergeRanges
+// Space: O(R)
+func Cafeteria2(ranges [][2]int) int {
+	merged := mergeRanges(ranges)
+
+	total := 0
+	for _, iv := range merged {
+		total += iv[1] - iv[0] + 1
+	}
+	return total
 }
