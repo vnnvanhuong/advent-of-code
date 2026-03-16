@@ -30,12 +30,12 @@ func Lobby1(banks []string) int {
 	return total
 }
 
-// PrefixSum_Lobby1 is an O(n) alternative to Lobby1. It precalculates,
+// PrefixSumLobby1 is an O(n) alternative to Lobby1. It precalculates,
 // for each index i, the largest digit appearing *after* i, then uses that to
 // compute the best two‑digit value for each possible first battery.  By
 // restricting the search to i < len(bank)-1 we avoid invalid pairs (there is
 // no second battery after the last position).
-func PrefixSum_Lobby1(banks []string) int {
+func PrefixSumLobby1(banks []string) int {
 	total := 0
 	for _, bank := range banks {
 		n := len(bank)
