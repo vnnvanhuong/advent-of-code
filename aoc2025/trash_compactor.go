@@ -20,6 +20,26 @@ func TrashCompactor(lines []string) int {
 	return total
 }
 
+// TrashCompactor2 parses the worksheet using the part-two rules, where each
+// number is read as a vertical column and problems are decoded right-to-left.
+func TrashCompactor2(lines []string) int {
+	if len(lines) == 0 {
+		return 0
+	}
+
+	grid := padWorksheet(lines)
+	ranges := problemRanges(grid)
+
+	total := 0
+	for _, r := range ranges {
+		operator := findOperator(grid[len(grid)-1], r[0], r[1])
+		numbers := parseNumbersByColumns(grid[:len(grid)-1], r[0], r[1])
+		total += evaluateNumbers(operator, numbers)
+	}
+
+	return total
+}
+
 func padWorksheet(lines []string) []string {
 	width := 0
 	for _, line := range lines {
@@ -81,6 +101,10 @@ func problemRanges(grid []string) [][2]int {
 func evaluateProblem(grid []string, left, right int) int {
 	operator := findOperator(grid[len(grid)-1], left, right)
 	numbers := parseNumbers(grid[:len(grid)-1], left, right)
+	return evaluateNumbers(operator, numbers)
+}
+
+func evaluateNumbers(operator byte, numbers []int) int {
 	if len(numbers) == 0 {
 		return 0
 	}
@@ -130,6 +154,28 @@ func parseNumbers(rows []string, left, right int) []int {
 			value, _ := strconv.Atoi(row[start:col])
 			numbers = append(numbers, value)
 		}
+	}
+
+	return numbers
+}
+
+func parseNumbersByColumns(rows []string, left, right int) []int {
+	var numbers []int
+
+	for col := right; col >= left; col-- {
+		digits := make([]byte, 0, len(rows))
+		for _, row := range rows {
+			if row[col] >= '0' && row[col] <= '9' {
+				digits = append(digits, row[col])
+			}
+		}
+
+		if len(digits) == 0 {
+			continue
+		}
+
+		value, _ := strconv.Atoi(string(digits))
+		numbers = append(numbers, value)
 	}
 
 	return numbers

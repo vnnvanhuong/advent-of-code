@@ -30,5 +30,6 @@ func main() {
 	fmt.Println("Cafeteria 2:", aoc2025.Cafeteria2(cafRanges))
 
 	worksheet := aoc2025.ReadLines("aoc2025/trash_compactor.txt")
-	fmt.Println("Trash Compactor:", aoc2025.TrashCompactor(worksheet))
+	fmt.Println("Trash Compactor 1:", aoc2025.TrashCompactor(worksheet))
+	fmt.Println("Trash Compactor 2:", aoc2025.TrashCompactor2(worksheet))
 }
