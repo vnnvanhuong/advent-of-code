@@ -28,4 +28,7 @@ func main() {
 	cafRanges, cafIDs := aoc2025.CafeteriaInput("aoc2025/cafeteria.txt")
 	fmt.Println("Cafeteria 1:", aoc2025.Cafeteria(cafRanges, cafIDs))
 	fmt.Println("Cafeteria 2:", aoc2025.Cafeteria2(cafRanges))
+
+	worksheet := aoc2025.ReadLines("aoc2025/trash_compactor.txt")
+	fmt.Println("Trash Compactor:", aoc2025.TrashCompactor(worksheet))
 }
