@@ -35,4 +35,5 @@ func main() {
 
 	manifold := aoc2025.ReadLines("aoc2025/laboratory.txt")
 	fmt.Println("Laboratory 1:", aoc2025.Laboratory(manifold))
+	fmt.Println("Laboratory 2:", aoc2025.Laboratory2(manifold))
 }
