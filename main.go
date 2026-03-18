@@ -32,4 +32,7 @@ func main() {
 	worksheet := aoc2025.ReadLines("aoc2025/trash_compactor.txt")
 	fmt.Println("Trash Compactor 1:", aoc2025.TrashCompactor(worksheet))
 	fmt.Println("Trash Compactor 2:", aoc2025.TrashCompactor2(worksheet))
+
+	manifold := aoc2025.ReadLines("aoc2025/laboratory.txt")
+	fmt.Println("Laboratory 1:", aoc2025.Laboratory(manifold))
 }
