@@ -44,4 +44,7 @@ func main() {
 	movieTheaterInput := aoc2025.ReadLines("aoc2025/movie_theater.txt")
 	fmt.Println("Movie Theater 1:", aoc2025.MovieTheater(movieTheaterInput))
 	fmt.Println("Movie Theater 2:", aoc2025.MovieTheater2(movieTheaterInput))
+
+	factoryInput := aoc2025.ReadLines("aoc2025/factory.txt")
+	fmt.Println("Factory 1:", aoc2025.Factory(factoryInput))
 }

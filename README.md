@@ -1,6 +1,4 @@
-# advent-of-code
-
-**
+# advent-of-code-2025
 
 My solutions to problems at https://adventofcode.com/
 
