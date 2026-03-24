@@ -40,4 +40,8 @@ func main() {
 	boxes := aoc2025.ReadLines("aoc2025/playground.txt")
 	fmt.Println("Playground 1:", aoc2025.Playground(boxes, 1000))
 	fmt.Println("Playground 2:", aoc2025.Playground2(boxes))
+
+	movieTheaterInput := aoc2025.ReadLines("aoc2025/movie_theater.txt")
+	fmt.Println("Movie Theater 1:", aoc2025.MovieTheater(movieTheaterInput))
+	fmt.Println("Movie Theater 2:", aoc2025.MovieTheater2(movieTheaterInput))
 }

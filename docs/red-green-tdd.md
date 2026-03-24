@@ -7,5 +7,3 @@ The most disciplined form of TDD is test-first development. You write the automa
 It's important to confirm that the tests fail before implementing the code to make them pass. If you skip that step you risk building a test that passes already, hence failing to exercise and confirm your new implementation.
 
 That's what "red/green" means: the red phase watches the tests fail, then the green phase confirms that they now pass.
-
-**Reference:** https://simonwillison.net/guides/agentic-engineering-patterns/red-green-tdd/
