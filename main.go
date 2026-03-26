@@ -47,4 +47,5 @@ func main() {
 
 	factoryInput := aoc2025.ReadLines("aoc2025/factory.txt")
 	fmt.Println("Factory 1:", aoc2025.Factory(factoryInput))
+	fmt.Println("Factory 2:", aoc2025.Factory2(factoryInput))
 }

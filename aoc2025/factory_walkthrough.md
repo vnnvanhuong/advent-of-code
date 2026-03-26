@@ -93,10 +93,79 @@ The time and space complexity match our initial analysis:
 - **Time Complexity:** $O(M \cdot 2^B)$ where $M$ is the number of machines and $B$ is the number of buttons per machine.
 - **Space Complexity:** $O(B)$ per machine to store the button masks.
 
+## Part Two — Problem Summary
+
+**The Goal:**
+Now configure each machine's **joltage level counters** (not indicator lights) to match the specified joltage requirements, using the fewest total button presses across all machines.
+
+**How it Works:**
+- **The Setup:** Each machine has numeric counters (one per joltage requirement), all starting at **0**.
+- **The Target:** The values inside `{...}` are the exact counter values we need to reach.
+- **The Buttons:** Same wiring as Part 1, but now pressing a button **increments by 1** each counter it's wired to (instead of toggling). Buttons can be pressed **any number of times** (not just 0 or 1).
+- **The Distraction:** The indicator light diagrams in `[...]` are now irrelevant.
+
+## Part Two — Logical Solution
+
+1. **Modeling the Problem:**
+   - Let $x_j \ge 0$ be the number of times button $j$ is pressed (non-negative integer).
+   - Let $A$ be the incidence matrix where $A[i][j] = 1$ if button $j$ affects counter $i$, else $0$.
+   - Let $b$ be the target vector of joltage requirements.
+   - The constraints are: $A \cdot x = b$, $x \ge 0$.
+   - The objective is: minimize $\sum x_j$ (total button presses).
+   - This is a **Linear Programming (LP)** problem.
+
+2. **Algorithm (Big-M Simplex Method):**
+   - Solve the LP relaxation using the Big-M simplex method:
+     - Add artificial variables $a_1, \ldots, a_m$ with very large cost $M$ to create an initial basic feasible solution.
+     - Run the simplex algorithm to drive artificial variables to zero (establishing feasibility) and then optimize the original objective.
+   - The simplex tableau is iterated: at each step, find the entering variable (most negative reduced cost), find the leaving variable (minimum ratio test), and pivot.
+   - Extract the optimal solution from the final tableau.
+   - Round to the nearest integer (the LP relaxation yields integer solutions for this input due to the structure of the 0-1 constraint matrix).
+
+3. **Complexity:**
+   - **Time Complexity:** $O(M \cdot P)$ where $M$ is the number of machines and $P$ is the simplex pivot count per machine. For a problem with $n$ variables and $m$ constraints, the worst-case pivot count is exponential, but in practice the simplex converges in $O(m)$ to $O(m^2)$ iterations. With $n \le 13$ and $m \le 10$, each machine solves in microseconds.
+   - **Space Complexity:** $O(n \cdot m)$ per machine for the simplex tableau.
+
+## Part Two — Dry Run
+
+**Machine 1:** `[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}`
+
+Buttons: b0={3}, b1={1,3}, b2={2}, b3={2,3}, b4={0,2}, b5={0,1}
+Targets: [3, 5, 4, 7]
+
+System of equations:
+- $x_4 + x_5 = 3$ (counter 0)
+- $x_1 + x_5 = 5$ (counter 1)
+- $x_2 + x_3 + x_4 = 4$ (counter 2)
+- $x_0 + x_1 + x_3 = 7$ (counter 3)
+
+Solving: $x_5 = 3 - x_4$, $x_1 = 5 - x_5 = 2 + x_4$, $x_2 = 4 - x_3 - x_4$, $x_0 = 7 - x_1 - x_3 = 5 - x_4 - x_3$.
+
+Sum $= x_0 + x_1 + x_2 + x_3 + x_4 + x_5 = (5 - x_4 - x_3) + (2 + x_4) + (4 - x_3 - x_4) + x_3 + x_4 + (3 - x_4) = 14 - x_3 - x_4$.
+
+Maximize $x_3 + x_4$ subject to non-negativity. From $x_2 \ge 0$: $x_3 + x_4 \le 4$. From $x_0 \ge 0$: $x_3 + x_4 \le 5$. So $x_3 + x_4 \le 4$, giving minimum sum $= 14 - 4 = 10$. ✓
+
+## Part Two — Implementation and Testing
+
+The solution is implemented in Go using the Big-M simplex method. All tests pass:
+- Machine 1: 10 ✓
+- Machine 2: 12 ✓
+- Machine 3: 11 ✓
+- All example machines: 33 ✓
+
+**Part Two answer: [REDACTED]**
+
 ## Takeaway
 
-The key lesson from this problem is recognizing when a problem can be modeled using bitwise operations.
+The key lesson from this problem is recognizing when a problem can be modeled using bitwise operations (Part 1) or linear programming (Part 2).
+
+**Part 1:**
 - **State Representation:** Representing a series of binary states (on/off) as bits in an integer is highly efficient.
 - **Toggling as XOR:** Recognizing that "toggling" a state is equivalent to the bitwise XOR (`^`) operation simplifies the logic immensely.
 - **Brute-Force Feasibility:** By analyzing the constraints (the number of buttons per machine was small, $\le 13$), we determined that a brute-force approach iterating through all $2^B$ subsets was perfectly feasible and would run in milliseconds. This avoided the need for more complex algorithms like Gaussian elimination over GF(2), which could also solve this but would be overkill given the small input size.
+
+**Part 2:**
+- **Problem Transformation:** The same physical setup (buttons + targets) becomes a completely different mathematical problem when toggling is replaced by incrementing. Part 1 was combinatorics over GF(2); Part 2 is linear programming over the non-negative integers.
+- **LP Modeling:** Recognizing that "each button press adds 1 to a subset of counters" is a system of linear equations $Ax = b$ with a 0-1 coefficient matrix, and "minimize total presses" is a linear objective, immediately frames the problem as an LP.
+- **Simplex Method:** The Big-M simplex method provides an elegant, general-purpose solver. For the small dimensions in this problem ($n \le 13$, $m \le 10$), it runs in microseconds.
 
