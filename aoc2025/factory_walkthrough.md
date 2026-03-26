@@ -93,6 +93,10 @@ The time and space complexity match our initial analysis:
 - **Time Complexity:** $O(M \cdot 2^B)$ where $M$ is the number of machines and $B$ is the number of buttons per machine.
 - **Space Complexity:** $O(B)$ per machine to store the button masks.
 
+## Part Two — Reference
+
+- [Python solution by topaz](https://topaz.github.io/paste/#XQAAAQDrBgAAAAAAAAAzHIoib6poHLpewxtGE3pTrRdzrponKxDhfDpmpp1XOH9xnlIyXvIsci+yi/TTFy44FGq6ZrL5OGunysUd322wy+hc3ZIsGd8pNfizbHiJBJTwZuKTJfFD2uUHnzBwP+u/d/PLktBiYiqXhh1rLe8pUTd4hRgQ7Y7ZnPiYgWE25rG2G/K82KYb/v3eDZYBSqI6WDTw/KZ12Dc6FqQLlurOLmsFXKRqb7yL8I8sTp9GTt2rfbMrhrR7UlhjBxofh5Ckk4hXPfRc/R87qV/BXrRJFgFbvPjBlT03fVct8umxOsqUTZ0nT7hYZl0wGUxgeOty+QYL51kUz7Jh0+LwJz28zABJLSt4UoP/08Oei2An6Y1i7Z/d7tmq1TE/qp3ZUSUTcjpJHmwOb9bGYuS9ryexTqHm6rXlEzZyiR8LjrqEDglnSy+YbNGxN2bbfvYPPco3xwCryYbgxUQ+LP53awgvEkk+We0/iyJCHhS7k3s9KLf9SkeB7/aXFoRQoHzrlkzme18oufdVmq+7hJe2xK2Z0Vyj11XfERvYggQXUIuwEbMKJWgp6jVgaoc9yXLHeaz1O+E8ECvRY5GerpLRyK0ywx4j0ItPHMWvkcySQyfoJjD+oHHVSzsrkggtm2szpnyD4QPzu0Cj4IzdkzkjA+9RYKpumjThjZIRU1tpoNVq/llLE+51NJkIUr7SRiLP5okgfiUXiJs6bd3lPfR/pwaO3iqTyVcHL/4/tOLI2Cz5lU0anKFSl9Mm6AEUTRIMfFmtD+JMwOFK226DXSLfjaopjJfI1sg4TmSJ7AjgQQOjCDKSVIvILlpaYliEsTDEg/q9vvOfpLfkVFP2WI0dt2raqrR9h44Q3NaKwKnFNmLV1yIunwwvEecBn5wyaG8Zr5JlF38jcGtGWBHYWVvmf23ByFxPZTgUDC8a1Fa967eX9K3+hB7gR8LgjOyS+DkfbLSCAqqPckeyD9PFfVH9KNAvQtTjZ/kmits4YjOhdIX/6G3UXw==) — binary decomposition approach that inspired the Go implementation.
+
 ## Part Two — Problem Summary
 
 **The Goal:**
@@ -110,44 +114,57 @@ Now configure each machine's **joltage level counters** (not indicator lights) t
    - Let $x_j \ge 0$ be the number of times button $j$ is pressed (non-negative integer).
    - Let $A$ be the incidence matrix where $A[i][j] = 1$ if button $j$ affects counter $i$, else $0$.
    - Let $b$ be the target vector of joltage requirements.
-   - The constraints are: $A \cdot x = b$, $x \ge 0$.
+   - The constraints are: $A \cdot x = b$, $x \ge 0$ (integer).
    - The objective is: minimize $\sum x_j$ (total button presses).
-   - This is a **Linear Programming (LP)** problem.
+   - This is an **Integer Linear Program (ILP)**, which cannot be solved by LP relaxation alone (the LP bound can be strictly less than the integer optimum for general 0-1 matrices).
 
-2. **Algorithm (Big-M Simplex Method):**
-   - Solve the LP relaxation using the Big-M simplex method:
-     - Add artificial variables $a_1, \ldots, a_m$ with very large cost $M$ to create an initial basic feasible solution.
-     - Run the simplex algorithm to drive artificial variables to zero (establishing feasibility) and then optimize the original objective.
-   - The simplex tableau is iterated: at each step, find the entering variable (most negative reduced cost), find the leaving variable (minimum ratio test), and pivot.
-   - Extract the optimal solution from the final tableau.
-   - Round to the nearest integer (the LP relaxation yields integer solutions for this input due to the structure of the 0-1 constraint matrix).
+2. **Key Insight — Binary Decomposition:**
+   - Every integer press count $x_j$ can be decomposed in binary: $x_j = \sum_{k=0}^{K} b_{j,k} \cdot 2^k$, where $b_{j,k} \in \{0, 1\}$.
+   - At each bit level $k$, we choose a subset of buttons to "activate" (press $2^k$ times). The cost at level $k$ is $2^k$ times the number of buttons in the chosen subset.
+   - The total cost is $\sum_k 2^k \cdot |\text{subset at level } k|$.
+   - At the lowest bit (level 0), the chosen subset must match the **parity** of the goal (each counter's contribution from the subset must have the same parity as the goal value).
+   - After subtracting the level-0 contribution, the remaining goal is even. Divide by 2 and recurse for higher bits.
 
-3. **Complexity:**
-   - **Time Complexity:** $O(M \cdot P)$ where $M$ is the number of machines and $P$ is the simplex pivot count per machine. For a problem with $n$ variables and $m$ constraints, the worst-case pivot count is exponential, but in practice the simplex converges in $O(m)$ to $O(m^2)$ iterations. With $n \le 13$ and $m \le 10$, each machine solves in microseconds.
-   - **Space Complexity:** $O(n \cdot m)$ per machine for the simplex tableau.
+3. **Algorithm (Recursive with Memoization):**
+   - **Precompute patterns:** Enumerate all $2^B$ subsets of buttons. For each subset, compute the resulting counter increment vector and its element-wise parity. Group patterns by parity, keeping the cheapest (fewest buttons) for each unique pattern.
+   - **Recursive solve:** For a goal vector:
+     - Base case: all zeros → cost 0.
+     - Look up patterns matching the goal's parity that are element-wise $\le$ the goal.
+     - For each valid pattern: subtract it from the goal, divide by 2, recurse.
+     - Cost = `pattern_cost + 2 * solve(halved_goal)`.
+     - Return the minimum cost.
+   - **Memoize** on the goal vector to avoid recomputation.
+
+4. **Complexity:**
+   - **Pattern precomputation:** $O(2^B \cdot C)$ per machine where $B$ is buttons and $C$ is counters.
+   - **Recursion depth:** $O(\log(\max b_i))$ levels since the goal is halved at each step.
+   - **Branching factor:** Bounded by the number of unique patterns per parity class.
+   - **Space:** Memoization table stores unique goal vectors encountered.
 
 ## Part Two — Dry Run
 
 **Machine 1:** `[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}`
 
 Buttons: b0={3}, b1={1,3}, b2={2}, b3={2,3}, b4={0,2}, b5={0,1}
-Targets: [3, 5, 4, 7]
+Targets: (3, 5, 4, 7), parity = (1, 1, 0, 1)
 
-System of equations:
-- $x_4 + x_5 = 3$ (counter 0)
-- $x_1 + x_5 = 5$ (counter 1)
-- $x_2 + x_3 + x_4 = 4$ (counter 2)
-- $x_0 + x_1 + x_3 = 7$ (counter 3)
+**Level 0:** Find a subset whose pattern has parity (1,1,0,1) and is ≤ (3,5,4,7).
+- Subset {b0, b5} → pattern (1,1,0,1), cost 2.
+- Remaining: (3-1, 5-1, 4-0, 7-1)/2 = (1, 2, 2, 3).
 
-Solving: $x_5 = 3 - x_4$, $x_1 = 5 - x_5 = 2 + x_4$, $x_2 = 4 - x_3 - x_4$, $x_0 = 7 - x_1 - x_3 = 5 - x_4 - x_3$.
+**Level 1:** Solve goal (1, 2, 2, 3), parity (1, 0, 0, 1).
+- Subset {b0, b4} → pattern (1,0,1,1), parity (1,0,1,1) ✗
+- Subset {b0, b2, b5} → pattern (1,1,1,1), parity (1,1,1,1) ✗
+- Subset {b3, b5} → pattern (1,1,1,1), parity (1,1,1,1) ✗
+- (Searching valid patterns...) Eventually finds a valid decomposition.
 
-Sum $= x_0 + x_1 + x_2 + x_3 + x_4 + x_5 = (5 - x_4 - x_3) + (2 + x_4) + (4 - x_3 - x_4) + x_3 + x_4 + (3 - x_4) = 14 - x_3 - x_4$.
+The algorithm recursively halves the goal at each level. Memoization ensures shared sub-goals are computed once.
 
-Maximize $x_3 + x_4$ subject to non-negativity. From $x_2 \ge 0$: $x_3 + x_4 \le 4$. From $x_0 \ge 0$: $x_3 + x_4 \le 5$. So $x_3 + x_4 \le 4$, giving minimum sum $= 14 - 4 = 10$. ✓
+Result: Machine 1 = 10. ✓
 
 ## Part Two — Implementation and Testing
 
-The solution is implemented in Go using the Big-M simplex method. All tests pass:
+The solution is implemented in Go using the binary decomposition algorithm with memoization. All tests pass:
 - Machine 1: 10 ✓
 - Machine 2: 12 ✓
 - Machine 3: 11 ✓
@@ -155,17 +172,22 @@ The solution is implemented in Go using the Big-M simplex method. All tests pass
 
 **Part Two answer: [REDACTED]**
 
+## Optimization Notes
+
+**Why LP relaxation fails here:** The LP relaxation (minimize $\sum x_j$ subject to $Ax = b$, $x \ge 0$, allowing fractional $x$) can produce a value strictly *less* than the integer optimum for general 0-1 matrices. A classic example is $A = \begin{bmatrix}1&1&0\\1&0&1\\0&1&1\end{bmatrix}$ with $b = (1,1,1)$: the LP gives $x = (0.5, 0.5, 0.5)$ with sum $1.5$, but no integer solution exists. The initial LP approach yielded 18544, while the correct binary decomposition gives 18559.
+
 ## Takeaway
 
-The key lesson from this problem is recognizing when a problem can be modeled using bitwise operations (Part 1) or linear programming (Part 2).
+The key lesson from this problem is recognizing when a problem can be modeled using bitwise operations (Part 1) or integer programming with binary structure (Part 2).
 
 **Part 1:**
 - **State Representation:** Representing a series of binary states (on/off) as bits in an integer is highly efficient.
 - **Toggling as XOR:** Recognizing that "toggling" a state is equivalent to the bitwise XOR (`^`) operation simplifies the logic immensely.
-- **Brute-Force Feasibility:** By analyzing the constraints (the number of buttons per machine was small, $\le 13$), we determined that a brute-force approach iterating through all $2^B$ subsets was perfectly feasible and would run in milliseconds. This avoided the need for more complex algorithms like Gaussian elimination over GF(2), which could also solve this but would be overkill given the small input size.
+- **Brute-Force Feasibility:** By analyzing the constraints (the number of buttons per machine was small, $\le 13$), we determined that a brute-force approach iterating through all $2^B$ subsets was perfectly feasible and would run in milliseconds.
 
 **Part 2:**
-- **Problem Transformation:** The same physical setup (buttons + targets) becomes a completely different mathematical problem when toggling is replaced by incrementing. Part 1 was combinatorics over GF(2); Part 2 is linear programming over the non-negative integers.
-- **LP Modeling:** Recognizing that "each button press adds 1 to a subset of counters" is a system of linear equations $Ax = b$ with a 0-1 coefficient matrix, and "minimize total presses" is a linear objective, immediately frames the problem as an LP.
-- **Simplex Method:** The Big-M simplex method provides an elegant, general-purpose solver. For the small dimensions in this problem ($n \le 13$, $m \le 10$), it runs in microseconds.
+- **Problem Transformation:** The same physical setup (buttons + targets) becomes a completely different mathematical problem when toggling is replaced by incrementing. Part 1 was combinatorics over GF(2); Part 2 is integer optimization over the non-negative integers.
+- **Binary Decomposition:** The key insight is that integer press counts decompose naturally into binary: at each bit level, choose a subset of buttons to activate. This transforms an ILP into a recursive problem solvable by dynamic programming.
+- **LP Relaxation Pitfall:** LP relaxation can give a lower bound that is strictly less than the integer optimum for general 0-1 matrices. Always verify integrality when using LP for integer problems.
+- **Memoized Recursion:** Halving the goal at each step gives $O(\log(\max\_target))$ depth, and memoization across the branching ensures efficiency.
 

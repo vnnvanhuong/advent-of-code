@@ -1,10 +1,13 @@
 package aoc2025
 
 import (
-	"math"
 	"strconv"
 	"strings"
 )
+
+const maxCounters = 16
+
+type counterVec [maxCounters]int
 
 func parseMachine(line string) (int, []int) {
 	// Example line: [.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
@@ -112,152 +115,108 @@ func parseJoltage(line string) ([][]int, []int) {
 	return buttons, targets
 }
 
-func minJoltagePresses(buttons [][]int, targets []int) int {
-	m := len(targets)
-	n := len(buttons)
+// solveMachineJoltage uses binary decomposition to find the minimum total
+// button presses. Each button's press count is decomposed into binary bits.
+// At each bit level, we choose a subset of buttons to "activate" (0 or 1),
+// matching the current parity of the remaining goal. The halved remainder
+// is solved recursively at double cost per press.
+func solveMachineJoltage(buttons [][]int, targets []int) int {
+	numCounters := len(targets)
+	numButtons := len(buttons)
 
-	A := make([][]float64, m)
-	for i := range A {
-		A[i] = make([]float64, n)
-	}
+	coeffs := make([]counterVec, numButtons)
 	for j, btn := range buttons {
 		for _, idx := range btn {
-			A[idx][j] = 1
+			coeffs[j][idx] = 1
 		}
 	}
 
-	b := make([]float64, m)
-	for i := range targets {
-		b[i] = float64(targets[i])
-	}
-
-	c := make([]float64, n)
-	for j := range c {
-		c[j] = 1
-	}
-
-	x, _ := solveLPSimplex(A, b, c)
-	if x == nil {
-		return -1
-	}
-
-	total := 0.0
-	for _, v := range x {
-		total += v
-	}
-	return int(math.Round(total))
-}
-
-// solveLPSimplex solves: minimize c^T x, subject to Ax = b, x >= 0
-// using the Big-M method with the simplex algorithm.
-func solveLPSimplex(A [][]float64, b []float64, c []float64) ([]float64, float64) {
-	m := len(A)
-	n := len(c)
-	bigM := 1e8
-	totalVars := n + m
-
-	tab := make([][]float64, m+1)
-	for i := range tab {
-		tab[i] = make([]float64, totalVars+1)
-	}
-
-	for i := 0; i < m; i++ {
-		for j := 0; j < n; j++ {
-			tab[i+1][j] = A[i][j]
-		}
-		tab[i+1][n+i] = 1.0
-		tab[i+1][totalVars] = b[i]
-	}
-
-	for j := 0; j < n; j++ {
-		var colSum float64
-		for i := 0; i < m; i++ {
-			colSum += A[i][j]
-		}
-		tab[0][j] = c[j] - bigM*colSum
-	}
-	var bSum float64
-	for i := 0; i < m; i++ {
-		bSum += b[i]
-	}
-	tab[0][totalVars] = -bigM * bSum
-
-	basis := make([]int, m)
-	for i := 0; i < m; i++ {
-		basis[i] = n + i
-	}
-
-	for iter := 0; iter < 10000; iter++ {
-		pivotCol := -1
-		minRC := -1e-10
-		for j := 0; j < totalVars; j++ {
-			if tab[0][j] < minRC {
-				minRC = tab[0][j]
-				pivotCol = j
-			}
-		}
-		if pivotCol == -1 {
-			break
-		}
-
-		pivotRow := -1
-		minRatio := math.MaxFloat64
-		for i := 1; i <= m; i++ {
-			if tab[i][pivotCol] > 1e-10 {
-				ratio := tab[i][totalVars] / tab[i][pivotCol]
-				if ratio < minRatio-1e-10 {
-					minRatio = ratio
-					pivotRow = i
+	patternsByParity := make(map[counterVec]map[counterVec]int)
+	for subset := 0; subset < (1 << numButtons); subset++ {
+		var pattern counterVec
+		cost := 0
+		for j := 0; j < numButtons; j++ {
+			if subset&(1<<j) != 0 {
+				cost++
+				for k := 0; k < numCounters; k++ {
+					pattern[k] += coeffs[j][k]
 				}
 			}
 		}
-		if pivotRow == -1 {
-			break
+
+		var parity counterVec
+		for k := 0; k < numCounters; k++ {
+			parity[k] = pattern[k] % 2
 		}
 
-		pivot := tab[pivotRow][pivotCol]
-		for j := 0; j <= totalVars; j++ {
-			tab[pivotRow][j] /= pivot
+		if patternsByParity[parity] == nil {
+			patternsByParity[parity] = make(map[counterVec]int)
 		}
-		for i := 0; i <= m; i++ {
-			if i != pivotRow {
-				factor := tab[i][pivotCol]
-				if factor != 0 {
-					for j := 0; j <= totalVars; j++ {
-						tab[i][j] -= factor * tab[pivotRow][j]
+		if existing, ok := patternsByParity[parity][pattern]; !ok || cost < existing {
+			patternsByParity[parity][pattern] = cost
+		}
+	}
+
+	memo := make(map[counterVec]int)
+	var solve func(goal counterVec) int
+	solve = func(goal counterVec) int {
+		allZero := true
+		for k := 0; k < numCounters; k++ {
+			if goal[k] != 0 {
+				allZero = false
+				break
+			}
+		}
+		if allZero {
+			return 0
+		}
+
+		if cached, ok := memo[goal]; ok {
+			return cached
+		}
+
+		var parity counterVec
+		for k := 0; k < numCounters; k++ {
+			parity[k] = goal[k] % 2
+		}
+
+		answer := 1_000_000
+		if patterns, ok := patternsByParity[parity]; ok {
+			for pattern, cost := range patterns {
+				valid := true
+				var newGoal counterVec
+				for k := 0; k < numCounters; k++ {
+					if pattern[k] > goal[k] {
+						valid = false
+						break
 					}
+					newGoal[k] = (goal[k] - pattern[k]) / 2
+				}
+				if !valid {
+					continue
+				}
+
+				total := cost + 2*solve(newGoal)
+				if total < answer {
+					answer = total
 				}
 			}
 		}
-		basis[pivotRow-1] = pivotCol
+
+		memo[goal] = answer
+		return answer
 	}
 
-	for i := 0; i < m; i++ {
-		if basis[i] >= n && tab[i+1][totalVars] > 1e-6 {
-			return nil, math.Inf(1)
-		}
-	}
-
-	x := make([]float64, n)
-	for i := 0; i < m; i++ {
-		if basis[i] < n {
-			x[basis[i]] = tab[i+1][totalVars]
-		}
-	}
-
-	objVal := 0.0
-	for j := 0; j < n; j++ {
-		objVal += c[j] * x[j]
-	}
-
-	return x, objVal
+	var goal counterVec
+	copy(goal[:], targets)
+	return solve(goal)
 }
 
 func Factory2(input []string) int {
 	total := 0
 	for _, line := range input {
 		buttons, targets := parseJoltage(line)
-		total += minJoltagePresses(buttons, targets)
+		total += solveMachineJoltage(buttons, targets)
 	}
 	return total
 }
