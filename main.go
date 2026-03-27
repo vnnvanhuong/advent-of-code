@@ -51,4 +51,5 @@ func main() {
 
 	reactorLines := aoc2025.ReadLines("aoc2025/reactor.txt")
 	fmt.Println("Reactor 1:", aoc2025.ReactorFromLines(reactorLines))
+	fmt.Println("Reactor 2:", aoc2025.Reactor2FromLines(reactorLines))
 }

@@ -62,6 +62,40 @@ Memoization already gives linear time in the size of the graph. Topological sort
 - **Converging paths:** Shared subgraphs (diamonds) are handled automatically by summing at the merge point via memoization.
 - **Cycles:** If simple paths were required, the problem would differ; here the puzzle implies a finite count, so treating a back-edge as an error (or detecting infinite families) keeps the model honest.
 
-## Part Two
+## Part Two — Problem Summary
 
-Not yet specified in the puzzle text.
+**The Goal:** Among all directed paths from `svr` to `out`, count how many **visit both** named devices `dac` and `fft` (in either order).
+
+## Part Two — Logical Solution
+
+Augment the path DP with a **2-bit mask** tracking whether `dac` and/or `fft` have appeared on the path so far.
+
+Pseudocode:
+
+```
+function count_from(v, mask):  // mask: bit0 = seen dac, bit1 = seen fft
+    if v is "dac": mask |= bit0
+    if v is "fft": mask |= bit1
+    if v is "out":
+        return 1 if mask has both bits else 0
+    memoize on (v, mask)
+    return sum over successors w of count_from(w, mask)
+```
+
+Answer: `count_from(svr, 0)`.
+
+**Complexity:** States are at most `4V`; each state scans out-degree once → **O(V + E)** time, **O(V)** extra space for memo (plus graph).
+
+## Part Two — Dry Run
+
+Example paths that include both `fft` and `dac` are exactly those that go through `aaa` (to reach `fft` early) and later `eee` → `dac` (or symmetric structure on the `bbb` branch with `tty` then `ccc` then `eee` → `dac`). The puzzle lists 8 total `svr`→`out` paths; only 2 include both special nodes. Implementation returns 2.
+
+## Part Two — Implementation and Testing
+
+`Reactor2` / `Reactor2FromLines` in `reactor.go`; example test in `reactor_test.go`.
+
+**Part two answer (puzzle input): [REDACTED]**
+
+## Part Two — Takeaway
+
+**Subset DP on a graph:** When constraints are “must visit a small fixed set of landmarks,” track a bitmask of which landmarks have been seen. The number of masks is `2^k` for `k` landmarks—here `k = 2`.

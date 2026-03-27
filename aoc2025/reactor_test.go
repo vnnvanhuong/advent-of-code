@@ -39,3 +39,24 @@ func TestReactorDirect(t *testing.T) {
 		t.Errorf("want 1, got %d", n)
 	}
 }
+
+func TestReactor2Example(t *testing.T) {
+	const example = `svr: aaa bbb
+aaa: fft
+fft: ccc
+bbb: tty
+tty: ccc
+ccc: ddd eee
+ddd: hub
+hub: fff
+eee: dac
+dac: fff
+fff: ggg hhh
+ggg: out
+hhh: out`
+	got := aoc2025.Reactor2FromLines(strings.Split(example, "\n"))
+	const want int64 = 2
+	if got != want {
+		t.Errorf("Reactor2FromLines(example) = %d, want %d", got, want)
+	}
+}
