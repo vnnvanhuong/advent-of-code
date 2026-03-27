@@ -49,7 +49,10 @@ func main() {
 	// fmt.Println("Factory 1:", aoc2025.Factory(factoryInput))
 	// fmt.Println("Factory 2:", aoc2025.Factory2(factoryInput))
 
-	reactorLines := aoc2025.ReadLines("aoc2025/reactor.txt")
-	fmt.Println("Reactor 1:", aoc2025.ReactorFromLines(reactorLines))
-	fmt.Println("Reactor 2:", aoc2025.Reactor2FromLines(reactorLines))
+	// reactorLines := aoc2025.ReadLines("aoc2025/reactor.txt")
+	// fmt.Println("Reactor 1:", aoc2025.ReactorFromLines(reactorLines))
+	// fmt.Println("Reactor 2:", aoc2025.Reactor2FromLines(reactorLines))
+
+	christmasLines := aoc2025.ReadLines("aoc2025/christmas_tree_farm.txt")
+	fmt.Println("Christmas Tree Farm:", aoc2025.ChristmasTreeFarmFromLines(christmasLines))
 }
