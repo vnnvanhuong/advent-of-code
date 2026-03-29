@@ -1,15 +1,16 @@
-# advent-of-code-2025
+# advent-of-code
 
-My solutions to problems at https://adventofcode.com/
+## Advent of Code 2025
+I use AI coding agent to teach me solving problems at https://adventofcode.com/
 
 
-## Run tests
+**Run tests**
 
 ```bash
 go test ./aoc2025/...
 ```
 
-## Execute the main program
+**Execute the main program**
 
 ```bash
 go run main.go
