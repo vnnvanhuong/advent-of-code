@@ -1,7 +1,7 @@
 # advent-of-code
 
 ## Advent of Code 2025
-I use AI coding agent to teach me solving problems at https://adventofcode.com/
+I use AI coding agents to teach me solving problems at https://adventofcode.com/
 
 
 **Run tests**
